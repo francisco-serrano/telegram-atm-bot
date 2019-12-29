@@ -5,6 +5,7 @@ from telegram import KeyboardButton, ReplyKeyboardMarkup
 
 import pandas as pd
 import numpy as np
+import re
 
 from geopy import distance
 from functools import reduce
@@ -33,7 +34,7 @@ def obtain_atms(lat, long, vendor):
         lambda row: distance.distance((row['long'], row['lat']), (row['mi_long'], row['mi_lat'])).meters, axis=1
     )
 
-    # df = df[df['distance'].lt(500)]
+    df = df[df['distance'].lt(500)]
 
     df = df.sort_values(by='distance', ascending=True)
 
@@ -55,7 +56,7 @@ def list_link_atms(update, context):
     context.user_data['atm_vendor'] = 'link'
 
     update.message.reply_text(
-        'Thanks for using atm_bot, we are going to ask you your current location in order to find the nearest ATMs',
+        'Thanks for using atm_bot, we are going to ask you your current location to find the nearest LINK ATMs',
         reply_markup=reply_markup
     )
 
@@ -71,7 +72,7 @@ def list_banelco_atms(update, context):
     context.user_data['atm_vendor'] = 'banelco'
 
     update.message.reply_text(
-        'Thanks for using atm_bot, we are going to ask you your current location in order to find the nearest ATMs',
+        'Thanks for using atm_bot, we are going to ask you your current location to find the nearest BANELCO ATMs',
         reply_markup=reply_markup
     )
 
@@ -89,11 +90,18 @@ def location(update, context):
     return ConversationHandler.END
 
 
+def error(update, context):
+    logger.error('update {} caused error {}'.format(update, context.error))
+
+
 def main():
     updater = Updater(token, use_context=True)
 
     handler = ConversationHandler(
-        entry_points=[CommandHandler('link', list_link_atms), CommandHandler('banelco', list_banelco_atms)],
+        entry_points=[
+            MessageHandler(Filters.regex(re.compile(r'link', re.IGNORECASE)), list_link_atms),
+            MessageHandler(Filters.regex(re.compile(r'banelco', re.IGNORECASE)), list_banelco_atms),
+        ],
         states={
             LOCATION_RECEIVED: [MessageHandler(Filters.location, location)],
         },
@@ -103,8 +111,12 @@ def main():
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(handler)
+    dispatcher.add_error_handler(error)
 
     updater.start_polling()
+
+    logger.info('ready to receive requests!!')
+
     updater.idle()
 
 
