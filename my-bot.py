@@ -41,7 +41,9 @@ def obtain_map(coords):
         min_long, min_lat, max_long, max_lat
     )
 
-    cookies = {'_osm_totp_token': '192509'}
+    response = requests.request('GET', 'https://www.openstreetmap.org/#map=4/-40.44/-63.59')
+
+    cookies = {'_osm_totp_token': response.cookies.get('_osm_totp_token')}
 
     response = requests.request('GET', url, cookies=cookies, stream=True)
 
@@ -150,12 +152,17 @@ def location(update, context):
     logger.info("location received: %f / %f", user_location.latitude, user_location.longitude)
 
     (atms, filename) = obtain_atms(-34.557419, -58.459149, context.user_data['atm_vendor'])
-    # atms = obtain_atms(user_location.latitude, user_location.longitude, context.user_data['atm_vendor'])
+    # (atms, filename) = obtain_atms(user_location.latitude, user_location.longitude, context.user_data['atm_vendor'])
 
     update.message.reply_text('Cajeros a menos de 500m\n{}'.format(atms))
 
+    vendor = context.user_data['atm_vendor']
+
     if filename is None:
+        update.message.reply_text('No se encuentran cajeros {} cercanos a su ubicación'.format(vendor))
         return ConversationHandler.END
+
+    update.message.reply_text('Generando imagen de GPS, aguarde unos instantes')
 
     update.message.reply_photo(photo=open(filename, 'rb'))
 
