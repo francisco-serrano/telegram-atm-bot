@@ -1,4 +1,4 @@
-# telegram-bot
+# telegram-atm-bot
 
 This bot helps Telegram users find ATMs which are near the user's location.  
 Applies to ATMs in Buenos Aires, Argentina.
