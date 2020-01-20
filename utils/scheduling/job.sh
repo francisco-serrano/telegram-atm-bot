@@ -1,0 +1,1 @@
+/usr/local/bin/python /app/utils/scheduling/atm_setup.py >> /app/logs.txt 2>&1

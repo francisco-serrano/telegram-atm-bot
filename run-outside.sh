@@ -1,0 +1,1 @@
+docker build -t telegram-bot . && docker run --rm --name tbot -it telegram-bot bash run-inside.sh

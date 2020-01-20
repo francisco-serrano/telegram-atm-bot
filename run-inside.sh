@@ -1,0 +1,1 @@
+service cron reload && service cron restart && python /app/my-bot.py
